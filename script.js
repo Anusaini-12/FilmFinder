@@ -1,4 +1,4 @@
-const API_KEY = 'api_key=1cf50e6248dc270629e802686245c2c8';
+const API_KEY = 'api_key=a5850e529c82e3ceba861b25fce75799';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const API_URL = `${BASE_URL}/discover/movie?sort_by=popularity.desc&${API_KEY}`;
 const IMG_URL = 'https://image.tmdb.org/t/p/original';
@@ -17,7 +17,7 @@ let totalPages = 100;
 let lastUrl = '';
 let selectedGenre = [];
 
-// 🎭 Set Genre Tags
+//Set Genre Tags
 function setGenre() {
     tagsEl.innerHTML = '';
     const genres = [
@@ -56,7 +56,7 @@ function highlightSelection() {
     selectedGenre.forEach(id => document.getElementById(id).classList.add('highlight'));
 }
 
-// 🎥 Fetch Movies
+//Fetch Movies
 function getMovies(url) {
     lastUrl = url;
     fetch(url).then(res => res.json()).then(data => {
@@ -73,7 +73,7 @@ function getMovies(url) {
     });
 }
 
-// 🎬 Display Movies
+//Display Movies
 function showMovies(data) {
     main.innerHTML = '';
 
@@ -105,10 +105,7 @@ function goToDetails(id) {
     window.location.href = `movie.html?id=${id}`;
 }
 
-
-
-
-// 🎭 Open Movie Details
+//Open Movie Details
 function openNav(id) {
     fetch(`${BASE_URL}/movie/${id}/videos?${API_KEY}`)
         .then(res => res.json())
@@ -122,12 +119,12 @@ function openNav(id) {
         });
 }
 
-// 🎨 Color Rating
+//Color Rating
 function getColor(vote) {
     return vote >= 8 ? 'green' : vote >= 5 ? 'orange' : 'red';
 }
 
-// 🔎 Search Movies
+//Search Movies
 form.addEventListener('submit', (e) => {
     e.preventDefault();
     const searchTerm = search.value.trim();
@@ -140,7 +137,7 @@ form.addEventListener('submit', (e) => {
     }
 });
 
-// ⏪ Pagination Controls
+//Pagination Controls
 prev.addEventListener('click', () => currentPage > 1 && pageCall(currentPage - 1));
 next.addEventListener('click', () => currentPage < totalPages && pageCall(currentPage + 1));
 
@@ -150,7 +147,7 @@ function pageCall(page) {
     getMovies(url.toString());
 }
 
-// 🎥 Hero Background
+//Hero Background
 function setHeroBackground() {
     fetch(API_URL)
         .then(res => res.json())
@@ -164,12 +161,14 @@ function setHeroBackground() {
 }
 setHeroBackground();
 
-// 🚀 Smooth Scroll for "Explore" Button
+
+
+//Smooth Scroll for "Explore" Button
 document.getElementById('cta-button').addEventListener('click', () => {
     document.querySelector('header').scrollIntoView({ behavior: 'smooth' });
 });
 
-// ⬆️ Back to Top Button
+//Back to Top Button
 const backToTopButton = document.createElement('button');
 backToTopButton.id = 'back-to-top';
 backToTopButton.className = 'btn';
@@ -185,5 +184,5 @@ backToTopButton.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-// 🎬 Load Initial Movies
+//Load Initial Movies
 getMovies(API_URL);

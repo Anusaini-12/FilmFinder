@@ -1,65 +1,78 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <title>FilmFinder</title>
 </head>
 <body>
 
-    <section class="hero" id="hero">
-        <div class="hero-content">
-            <h1>Welcome to FilmFinder</h1>
-            <p>Discover the latest movies and trailers</p>
-            <button id="cta-button">Explore Movies</button>
-        </div>
-    </section>
+<!-- Hero Section -->
+<section class="hero" id="hero">
+    <div class="hero-content">
+        <h1>Welcome to FilmFinder</h1>
+        <p>Discover the latest movies and trailers</p>
+        <button id="cta-button">Explore Movies</button>
+    </div>
+</section>
 
-<!--search box-->  
+<!-- Navigation -->
 <header>
- <nav>
+    <nav>
         <ul>
             <li><a href="#hero">Home</a></li>
             <li><a href="#main">Movies</a></li>
-            <!-- <li><a href="#favorites">Favorites</a></li> -->
             <li><a href="movie.html">Movie Details</a></li>
         </ul>
-</nav>
-    <form id="form">
-        <input type="text" placeholder="Search" id="search" class="search"></input>
+    </nav>
+
+    <!-- Search Box & Upload Feature -->
+    <form id="form" class="search-container">
+        <div class="search-box">
+            <!-- Search Input -->
+            <input type="text" placeholder="Search movies..." id="search" class="search">
+
+            <!-- File Upload Icon -->
+            <label for="audio-upload" class="upload-icon" title="Upload a Clip">
+                <i class="fas fa-file-arrow-up"></i>
+            </label>
+            <input type="file" id="audio-upload" accept="audio/*, video/*">
+
+            <!-- Voice Search Button -->
+            <label for="voice-search" class="voice-icon" title="Voice Search">
+                <i class="fa-solid fa-microphone"></i>
+            </label>
+        </div>
     </form>
 </header>
 
-<!--Movie tags-->
+ <!-- Result Section -->
+<section id="movie-result" class="movie-result"></section>
+
+<!-- Movie Tags -->
 <div id="tags"></div>
 
-<div id="myNav" class="overlay">
-
-<!-- Button to close the overlay navigation -->
-<a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-  
-<!-- Overlay content -->
-<div class="overlay-content" id="overlay-content"></div> 
-    <a href="javascript:void(0)" class="arrow left-arrow" id="left-arrow">&#8656;</a>  
-    <a href="javascript:void(0)" class="arrow right-arrow" id="right-arrow" >&#8658;</a>
-</div>
-
-
+<!-- Movie Results -->
 <main id="main"></main>
+<div id="movie-result"></div>
+
+<!-- Pagination -->
 <div class="pagination">
     <div class="page" id="prev">Previous Page</div>
     <div class="current" id="current">1</div>
     <div class="page" id="next">Next Page</div>
 </div>
 
+<!-- Footer -->
 <footer>
     <p>&copy; 2023 FilmFinder. All rights reserved.</p>
 </footer>
 
-
+<!-- Scripts -->
 <script src="script.js"></script>
- <!-- <script src="abc.js"></script> -->
+<script src="uploadClip.js"></script>
+
 </body>
 </html>
