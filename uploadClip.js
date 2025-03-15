@@ -1,23 +1,78 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const fileInput = document.getElementById("audio-upload");
+    const fileInput = document.getElementById("media-upload");
     const resultDiv = document.getElementById("movie-result");
     const uploadIcon = document.querySelector(".upload-icon i");
     const voiceIcon = document.querySelector(".voice-icon i");
     const searchInput = document.getElementById("search");
 
-    const SHAZAM_API_KEY = "59ac4357b7msh98da091bad8e0a4p11e8a7jsn2c14b53ef89c";  
-    const TMDB_API_KEY = "1cf50e6248dc270629e802686245c2c8";   
+    const TMDB_API_KEY = "a1f92cfb27aa3b9e66cb42880700f6d9";   
+    const IMAGGA_AUTH_KEY = "Basic YWNjX2RhZmM0ZjU0M2QyNmExNzoyYjA3OWM4MjFiZGRmYWUxMmRjYTE4ZGU1NmIzYWVlNw=="; // Replace with your base64(auth_key:auth_secret)
 
+    // ✅ Image Upload & Preview Function
+    fileInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-    // ✅ Find Movie Based on the Song Name
-    async function findMovieFromSong(songName) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("preview").src = e.target.result;
+            document.getElementById("preview").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+
+        // ✅ Automatically Process Image After Selection
+        uploadImage(file);
+    });
+
+    // ✅ Upload Image & Get Tags from Imagga
+    async function uploadImage(file) {
+        if (!file) {
+            alert("Please select an image!");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("image", file);
+
+        // Show loading text
+        resultDiv.innerHTML = `<p>⏳ Analyzing image...</p>`;
+        resultDiv.classList.add("show");
+
         try {
-            const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(songName)}&api_key=${TMDB_API_KEY}`);
+            const response = await fetch("https://api.imagga.com/v2/tags", {
+                method: "POST",
+                headers: { "Authorization": IMAGGA_AUTH_KEY },
+                body: formData
+            });
+
             const data = await response.json();
-            return data.results.length ? data.results[0] : null;
+            if (data.result && data.result.tags.length > 0) {
+                const detectedMovie = data.result.tags[0].tag.en; // Get the most relevant tag
+                console.log("Detected Movie Tag:", detectedMovie);
+                findMovieFromTag(detectedMovie); // Search TMDb for movie details
+            } else {
+                showError("No movie-related tags found!");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            showError("Error analyzing image!");
+        }
+    }
+
+    // ✅ Search Movie Using the Tag from Imagga
+    async function findMovieFromTag(tag) {
+        try {
+            const response = await fetch(`https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(tag)}&api_key=${TMDB_API_KEY}`);
+            const data = await response.json();
+
+            if (data.results.length > 0) {
+                displayMovie(data.results[0]); // Get the best match
+            } else {
+                showError(`No matching movie found for "${tag}".`);
+            }
         } catch (error) {
             console.error("Error fetching movie:", error);
-            return null;
+            showError("Error fetching movie details.");
         }
     }
 
@@ -59,12 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.log("Voice recognized:", speechResult);
 
             // ✅ Auto Search for Movies
-            const movie = await findMovieFromSong(speechResult);
-            if (movie) {
-                displayMovie(movie);
-            } else {
-                showError(`No matching movie found for "${speechResult}".`);
-            }
+            findMovieFromTag(speechResult);
         };
 
         recognition.onerror = (error) => {
