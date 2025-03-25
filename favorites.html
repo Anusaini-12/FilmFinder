@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Favorites - FilmFinder</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-black text-white" onload="displayFavorites()">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-900 px-4 py-3 shadow-md">
+        <div class="container mx-auto flex items-center justify-between">
+            <a href="index.html" class="text-2xl font-bold text-red-500">FilmFinder</a>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="hover:text-red-500 transition">Home</a>
+                <a href="favorites.html" class="text-red-500 font-semibold">Favorites</a>
+                <a href="contact.html" class="hover:text-red-500 transition">Contact Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Favorites Section -->
+    <section class="container mx-auto p-6">
+        <h1 class="text-4xl font-bold text-white-500 text-center mb-6">⭐ Your Favorites</h1>
+        <div id="favorites-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Favorite movies will be dynamically inserted here -->
+        </div>
+    </section>
+
+    <script>
+        // ✅ Add a movie to favorites
+        function addToFavorites(movieId, title, poster) {
+            let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+            if (!favorites.some(movie => movie.id === movieId)) {
+                favorites.push({ id: movieId, title, poster });
+                localStorage.setItem("favorites", JSON.stringify(favorites));
+                alert("⭐ Movie added to favorites!");
+            } else {
+                alert("❗ This movie is already in favorites.");
+            }
+        }
+
+        // ✅ Remove a movie from favorites
+        function removeFromFavorites(movieId) {
+            let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+            favorites = favorites.filter(movie => movie.id !== movieId);
+            localStorage.setItem("favorites", JSON.stringify(favorites));
+            displayFavorites();
+        }
+
+        // ✅ Display favorites on the "Favorites" page
+        function displayFavorites() {
+            const favoritesContainer = document.getElementById("favorites-list");
+            if (!favoritesContainer) return;
+
+            favoritesContainer.innerHTML = "";
+            const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+
+            if (favorites.length === 0) {
+                favoritesContainer.innerHTML = "<p class='text-white text-center'>No favorite movies yet.</p>";
+                return;
+            }
+
+            favorites.forEach(movie => {
+                favoritesContainer.innerHTML += `
+                    <div class="movie-card bg-gray-800 p-3 rounded-lg shadow-md text-center">
+                        <img src="${movie.poster}" class="w-full h-64 object-cover rounded-md" onerror="this.onerror=null; this.src='placeholder.jpg';">
+                        <div class="movie-info mt-2">
+                            <p class="movie-title font-semibold">${movie.title}</p>
+                            <button onclick="removeFromFavorites(${movie.id})" class="bg-red-500 text-white px-3 py-1 rounded mt-2 hover:bg-red-600 transition">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+
+</body>
+</html>

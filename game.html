@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Emoji Pictionary</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: 'Poppins', sans-serif;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .emoji-display { font-size: 3rem; }
+        .hint-text { letter-spacing: 5px; }
+        .timer-bar { height: 5px; transition: width 1s linear; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.3s; }
+        .highest-score {
+            background: linear-gradient(45deg, #f6d365, #fda085);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes glow {
+            from { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff0, 0 0 20px #ff0; }
+            to { text-shadow: 0 0 10px #fff, 0 0 15px #ff0, 0 0 20px #ff0, 0 0 25px #ff0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center text-white p-4">
+    <!-- Back Button -->
+  <div class="absolute top-4 left-4">
+    <button onclick="window.history.back()" class="fixed font-bold bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">
+      ⬅ Back
+    </button>
+  </div>
+    <div id="app" class="glass p-6 w-full max-w-md">
+        <!-- 🏠 Home Screen -->
+        <div id="home" class="text-center">
+            <h1 class="text-3xl font-bold mb-2 text-yellow-400">🎬 Movie Emoji Pictionary</h1>
+            <p class="mb-6">Guess the movie from emojis!</p>
+            <button id="start-btn" class="bg-purple-600 hover:bg-purple-500 px-6 py-3 rounded-lg font-bold w-full">
+                Start Game
+            </button>
+        </div>
+
+        <!-- 🎮 Game Screen -->
+        <div id="game" class="hidden">
+            <div class="flex justify-between mb-4">
+                <span>Score: <span id="score">0</span></span>
+                <span>Round: <span id="round">1</span>/5</span>
+            </div>
+            
+            <div class="emoji-display mb-4 text-center" id="emoji-clue"></div>
+            <div class="hint-text mb-4 text-center" id="hint"></div>
+            
+            <div class="timer-bar bg-red-500 mb-4 rounded-full" id="timer-bar"></div>
+            
+            <input 
+                id="guess" 
+                type="text" 
+                placeholder="Type your guess..." 
+                class="w-full p-3 rounded-lg text-black mb-3"
+                autocomplete="off"
+            >
+            
+            <div class="flex gap-2">
+                <button id="skip-btn" class="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg flex-1">
+                    Skip (➖10)
+                </button>
+                <button id="hint-btn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg">
+                    Hint (➖5)
+                </button>
+                <button id="submit-btn" class="bg-green-600 hover:bg-green-500 px-4 py-2 rounded-lg flex-1">
+                    Submit
+                </button>
+            </div>
+        </div>
+
+        <!-- 🏆 Results Screen -->
+        <div id="results" class="hidden text-center">
+            <h2 class="text-2xl font-bold mb-2 text-green-400">🎉 Your Score: <span id="final-score">0</span></h2>
+            
+            <input 
+                id="name" 
+                type="text" 
+                placeholder="Enter your name" 
+                class="w-full p-3 rounded-lg text-black my-4"
+            >
+            
+            <div class="flex gap-2">
+                <button id="save-btn" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg flex-1">
+                    Save Score
+                </button>
+                <button id="again-btn" class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-lg flex-1">
+                    Play Again
+                </button>
+            </div>
+            
+            <h3 class="text-xl mt-6 mb-2">🏆 Leaderboard</h3>
+            <ul id="leaderboard" class="text-left"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Game Data
+        const movies = [
+            { emoji: "🦁👑", title: "THE LION KING", hint: "_ _ _   _ _ _   _ _ _ _" },
+            { emoji: "👽📞🏠", title: "E T", hint: "_ _", hintReveal: "E _", hintReveal2: "E T" },
+            { emoji: "🔴🧵🌎", title: "THE MATRIX", hint: "_ _ _   _ _ _ _ _", hintReveal: "T _ _   _ _ _ _ _", hintReveal2: "T H E   M A T R I X" },
+            { emoji: "🦖🏝️", title: "JURASSIC PARK", hint: "_ _ _ _ _ _ _   _ _ _ _", hintReveal: "J _ _ _ _ _ _   _ _ _ _", hintReveal2: "J U R A S S I C   P A R K" },
+            { emoji: "👻🚗", title: "GHOSTBUSTERS", hint: "_ _ _ _ _ _ _ _ _ _ _", hintReveal: "G _ _ _ _ _ _ _ _ _ _", hintReveal2: "G H O S T B U S T E R S" }
+        ];
+
+        // DOM Elements
+        const homeScreen = document.getElementById("home");
+        const gameScreen = document.getElementById("game");
+        const resultsScreen = document.getElementById("results");
+        const emojiClue = document.getElementById("emoji-clue");
+        const hintDisplay = document.getElementById("hint");
+        const guessInput = document.getElementById("guess");
+        const scoreDisplay = document.getElementById("score");
+        const roundDisplay = document.getElementById("round");
+        const finalScoreDisplay = document.getElementById("final-score");
+        const timerBar = document.getElementById("timer-bar");
+        const leaderboardList = document.getElementById("leaderboard");
+
+        // Game State
+        let score = 0;
+        let currentRound = 0;
+        let currentMovie = null;
+        let timer;
+        let timeLeft = 15;
+        let hintLevel = 0;
+        let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+        let isHighestScore = false;
+        let confettiTimeout = null;
+
+        // Initialize Game
+        function initGame() {
+            leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
+            updateLeaderboard();
+            isHighestScore = false;
+        }
+
+        // Start Game
+        document.getElementById("start-btn").addEventListener("click", () => {
+            score = 0;
+            currentRound = 0;
+            startGame();
+        });
+
+        // Game Controls
+        document.getElementById("submit-btn").addEventListener("click", checkAnswer);
+        guessInput.addEventListener("keypress", (e) => e.key === "Enter" && checkAnswer());
+        document.getElementById("hint-btn").addEventListener("click", giveHint);
+        document.getElementById("skip-btn").addEventListener("click", skipQuestion);
+        document.getElementById("save-btn").addEventListener("click", saveScore);
+        document.getElementById("again-btn").addEventListener("click", resetGame);
+
+        // Game Functions
+        function startGame() {
+            homeScreen.classList.add("hidden");
+            gameScreen.classList.remove("hidden");
+            scoreDisplay.textContent = score;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentRound >= movies.length) {
+                endGame();
+                return;
+            }
+
+            currentMovie = movies[currentRound];
+            emojiClue.textContent = currentMovie.emoji;
+            hintDisplay.textContent = "";
+            guessInput.value = "";
+            guessInput.focus();
+            roundDisplay.textContent = currentRound + 1;
+            hintLevel = 0;
+
+            // Reset timer
+            clearInterval(timer);
+            timeLeft = 15;
+            timerBar.style.width = "100%";
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerBar.style.width = `${(timeLeft / 15) * 100}%`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    skipQuestion();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer() {
+            const guess = guessInput.value.trim().toUpperCase();
+            
+            if (guess === currentMovie.title) {
+                // Correct answer
+                clearInterval(timer);
+                const pointsEarned = 20 + (timeLeft * 2); // Base 20 + time bonus
+                score += pointsEarned;
+                scoreDisplay.textContent = score;
+                
+                // Show points earned
+                const pointsPopup = document.createElement("div");
+                pointsPopup.className = "text-green-400 font-bold text-xl mt-2";
+                pointsPopup.textContent = `+${pointsEarned} points!`;
+                hintDisplay.after(pointsPopup);
+                
+                // Confetti for correct answer
+                fireConfetti(1000);
+                
+                setTimeout(() => {
+                    pointsPopup.remove();
+                    currentRound++;
+                    loadQuestion();
+                }, 1000);
+            } else if (guess && currentMovie.title.includes(guess)) {
+                // Partial match
+                guessInput.classList.add("shake");
+                setTimeout(() => guessInput.classList.remove("shake"), 300);
+                alert("Close! Try again.");
+            } else if (guess) {
+                // Wrong answer
+                guessInput.classList.add("shake");
+                setTimeout(() => guessInput.classList.remove("shake"), 300);
+                alert("Not quite right!");
+            }
+        }
+
+        function giveHint() {
+            if (score < 5) {
+                alert("You need at least 5 points for a hint!");
+                return;
+            }
+            
+            score -= 5;
+            scoreDisplay.textContent = score;
+            hintLevel++;
+            
+            if (hintLevel === 1) {
+                hintDisplay.textContent = currentMovie.hintReveal || currentMovie.hint;
+            } else if (hintLevel >= 2 && currentMovie.hintReveal2) {
+                hintDisplay.textContent = currentMovie.hintReveal2;
+                document.getElementById("hint-btn").disabled = true;
+            }
+        }
+
+        function skipQuestion() {
+            clearInterval(timer);
+            score = Math.max(0, score - 10); // Deduct 10 points for skipping
+            scoreDisplay.textContent = score;
+            currentRound++;
+            loadQuestion();
+        }
+
+        function endGame() {
+            clearInterval(timer);
+            gameScreen.classList.add("hidden");
+            resultsScreen.classList.remove("hidden");
+            finalScoreDisplay.textContent = score;
+            updateLeaderboard();
+            
+            // Big confetti when game ends
+            fireConfetti(2000);
+        }
+
+        function saveScore() {
+            const name = document.getElementById("name").value.trim();
+            if (!name) {
+                alert("Please enter your name!");
+                return;
+            }
+
+            // Check if this is the highest score
+            isHighestScore = leaderboard.length === 0 || score > Math.max(...leaderboard.map(item => item.score));
+
+            const newEntry = { name, score, date: new Date().toISOString() };
+            leaderboard.push(newEntry);
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard = leaderboard.slice(0, 5);
+            localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
+            updateLeaderboard();
+            
+            // Special confetti if highest score
+            if (isHighestScore) {
+                fireConfetti(3000, true);
+            } else {
+                fireConfetti(1500);
+            }
+        }
+
+        function updateLeaderboard() {
+            leaderboardList.innerHTML = leaderboard
+                .map((player, i) => {
+                    const isHighest = i === 0 && player.score === Math.max(...leaderboard.map(item => item.score));
+                    return `
+                        <li class="py-2 border-b border-gray-700 flex justify-between items-center">
+                            <div>
+                                <span>${i + 1}. ${player.name}</span>
+                                ${isHighest ? '<span class="highest-score ml-2 text-xs">★ HIGHEST SCORE ★</span>' : ''}
+                            </div>
+                            <span class="text-yellow-400">${player.score}</span>
+                        </li>
+                    `;
+                })
+                .join("");
+        }
+
+        function resetGame() {
+            // Clear any pending confetti
+            if (confettiTimeout) {
+                clearTimeout(confettiTimeout);
+            }
+            resultsScreen.classList.add("hidden");
+            homeScreen.classList.remove("hidden");
+            initGame();
+        }
+
+        // Confetti Effect
+        function fireConfetti(duration = 1000, isSpecial = false) {
+            // Clear any existing timeout
+            if (confettiTimeout) {
+                clearTimeout(confettiTimeout);
+            }
+            
+            const colors = isSpecial 
+                ? ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff']
+                : ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff'];
+            
+            const count = isSpecial ? 150 : 100;
+            
+            // Fire confetti from multiple angles
+            confetti({
+                particleCount: count,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: colors
+            });
+            
+            if (isSpecial) {
+                // Additional bursts for special occasions
+                setTimeout(() => {
+                    confetti({
+                        particleCount: count/2,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: colors
+                    });
+                    confetti({
+                        particleCount: count/2,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: colors
+                    });
+                }, 200);
+            }
+            
+            // Set timeout to prevent memory leaks
+            confettiTimeout = setTimeout(() => {
+                // No need to clear with canvas-confetti
+            }, duration);
+        }
+
+        // Initialize on load
+        initGame();
+    </script>
+</body>
+</html>

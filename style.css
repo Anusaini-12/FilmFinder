@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+body {
+    font-family: 'Roboto', Arial, sans-serif;
+    background-color: #000; /* Full dark background */
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.hero {
+    width: 100%;
+    height: 50vh; 
+    position: relative;
+    background-size: cover; 
+    background-position: center center; 
+    background-attachment: fixed; 
+    display: flex;
+    align-items: center; 
+    justify-content: center;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6); /* Dark overlay for better text visibility */
+}
+
+@media (max-width: 768px) {
+    .hero {
+        height: 500px; /* Adjust height for mobile screens */
+        background-attachment: scroll; /* Disable parallax on mobile for better performance */
+        background-size: cover;
+    }
+}
+
+/* =============== Genres Section =============== */
+#genre-container {
+    text-align: center;
+    margin: 20px auto;
+    padding: 10px 0;
+}
+
+#tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+}
+
+.tag {
+    background-color: #333;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.tag:hover {
+    background-color: #dc2626;
+    transform: scale(1.05);
+}
+
+.highlight {
+    background-color: #b91c1c !important;
+    font-weight: bold;
+}
+
+/* =============== Movie Card =============== */
+.movie-card {
+    position: relative;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    margin: 16px;
+    width: 220px;
+    flex-shrink: 0;
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* Movie Poster */
+.movie-card img {
+    width: 100%;
+    height: 320px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+}
+
+/* Movie Info (below poster) */
+.movie-info {
+    padding: 12px;
+    font-size: 15px;
+    text-align: center;
+    background: #1a1a1a;
+}
+
+.movie-title {
+    font-weight: 700;
+    margin-bottom: 6px;
+    font-size: 16px;
+}
+
+.movie-rating {
+    font-size: 0.9rem;
+    color: #facc15; /* Yellow for rating */
+}
+
+/* Hover Effect: Show Only the Button */
+.movie-hover {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    border-radius: 0 0 8px 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    padding: 10px;
+}
+
+.movie-card:hover .movie-hover {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* "View Details" Button */
+.movie-hover button {
+    background-color: #dc2626;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.movie-hover button:hover {
+    background-color: #b91c1c;
+    transform: scale(1.02);
+}
+
+/* =============== Trending Movies Scrolling =============== */
+@keyframes scrollMovies {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+.trending-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    white-space: nowrap;
+}
+
+.trending-list {
+    display: flex;
+    width: max-content;
+    animation: scrollMovies 20s linear infinite;
+    overflow: hidden;
+}
+
+.movie-item {
+    width: 200px;
+    flex-shrink: 0;
+}
+
+.movie-item img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* =============== Movie Section (for scrolling) =============== */
+.movie-section {
+    overflow-x: auto;
+    white-space: nowrap;
+    scroll-behavior: smooth;
+    padding-bottom: 10px;
+}
+
+.movie-list {
+    display: flex;
+    gap: 20px;
+}
+
+.movie-section::-webkit-scrollbar {
+    display: none;
+}
+
+/* Responsive Typography */
+@media (max-width: 640px) {
+    .movie-card {
+        width: 180px;
+    }
+    .movie-card img {
+        height: 280px;
+    }
+    .movie-info {
+        font-size: 14px;
+    }
+    .movie-title {
+        font-size: 15px;
+    }
+    .movie-rating {
+        font-size: 0.85rem;
+    }
+}
+.movie-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    padding: 20px;
+}
+.nav-item {
+    position: relative;
+    text-align: center;
+}
+
+.nav-item a {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    font-size: 22px;
+    transition: transform 0.3s ease-in-out;
+    position: relative;
+    padding: 8px 15px;
+}
+
+.nav-item a i {
+    transition: transform 0.3s ease-in-out;
+}
+
+.nav-item a:hover i {
+    transform: translateY(-7px) scale(0.8); 
+    color: red;
+}
+
+/* Hover Text Effect */
+.nav-text {
+    position: absolute;
+    opacity: 0;
+    font-size: 15px;
+    color: red;
+    padding: 4px 8px;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(20px);
+    white-space: nowrap;
+    pointer-events: none;
+}
+.nav-item a:hover .nav-text {
+    opacity: 1;
+    transform: translateY(10px); 
+}
