@@ -4,10 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Movie Details - Streamify</title>
-  <!-- TailwindCSS CDN -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <style>
-    /* Backdrop styling */
     .backdrop {
       position: fixed;
       top: 0;
@@ -25,7 +23,6 @@
       background: rgba(0,0,0,0.6);
       z-index: -1;
     }
-    /* Modal for Trailer */
     .modal {
       position: fixed;
       inset: 0;
@@ -45,20 +42,15 @@
   </style>
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col items-center justify-center relative p-4">
-  <!-- Redirect if no movie is selected -->
   <script>
     if (!localStorage.getItem("selectedMovie")) {
-      window.location.href = "index.html"; // Redirect to homepage if no movie is found
+      window.location.href = "index.html";
     }
   </script>
-
-  <!-- Backdrop and Overlay -->
   <div id="backdrop" class="backdrop"></div>
   <div class="overlay"></div>
-
-  <!-- Back Button -->
   <div class="absolute top-4 left-4">
-    <button onclick="window.history.back()" class="fixed font-bold bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">
+    <button onclick="window.history.back()" class="font-bold bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition">
       ⬅ Back
     </button>
   </div>
@@ -107,8 +99,10 @@
     </div>
   </div>
 
-  <script>
-    const API_KEY = "a1f92cfb27aa3b9e66cb42880700f6d9"; // Your TMDB API Key
+  <script type="module">
+    import { checkAuthStatus } from "./auth/auth.js";
+    checkAuthStatus();
+    const API_KEY = "a1f92cfb27aa3b9e66cb42880700f6d9"; 
     const BASE_URL = "https://api.themoviedb.org/3";
     const IMG_BASE_URL = "https://image.tmdb.org/t/p/w500";
     const movie = JSON.parse(localStorage.getItem("selectedMovie"));

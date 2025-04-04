@@ -111,7 +111,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { checkAuthStatus } from "./auth/auth.js";
+        checkAuthStatus();
         // Game Data
         const movies = [
             { emoji: "🦁👑", title: "THE LION KING", hint: "_ _ _   _ _ _   _ _ _ _" },

@@ -13,12 +13,9 @@
 <!-- Navbar -->
 <nav class="bg-gray-900 px-4 py-3 shadow-md">
   <div class="container mx-auto flex items-center justify-between">
-    
-    <!-- Brand / Logo -->
     <a href="index.html" class="text-2xl font-bold text-red-500">Streamify</a>
-
-    <!-- Desktop Navigation Links -->
     <div class="hidden md:flex items-center space-x-10">
+   
       <!-- Home -->
       <div class="nav-item">
         <a href="index.html" class="flex items-center">
@@ -26,7 +23,6 @@
           <span class="nav-text">Home</span>
         </a>
       </div>
-
       <!-- Favorites -->
       <div class="nav-item">
         <a href="favorites.html" class="flex items-center">
@@ -34,7 +30,6 @@
           <span class="nav-text">Favorites</span>
         </a>
       </div>
-
       <!-- Contact -->
       <div class="nav-item">
         <a href="contact.html" class="flex items-center">
@@ -42,7 +37,6 @@
           <span class="nav-text">Contact</span>
         </a>
       </div>
-
       <!-- Game -->
       <div class="nav-item">
         <a href="game.html" class="flex items-center">
@@ -50,21 +44,19 @@
           <span class="nav-text">Play Game</span>
         </a>
       </div>
+      <button id="logout-btn" class="hidden bg-red-500 text-white px-4 py-2 rounded">Logout</button>
     </div>
-
     <!-- Search Box and Icons -->
     <div class="flex items-center space-x-4">
-      <!-- Search Box (Hidden on mobile) -->
       <div class="hidden md:block">
         <input type="text" id="search-box" placeholder="Search movies..." 
                class="px-3 py-2 rounded-md bg-gray-800 text-white focus:outline-none w-full" />
+        <ul id="suggestions-list" class="absolute bg-gray-900 text-white rounded-md w-full shadow-md hidden"></ul>
       </div>
-      
       <!-- Search Icon (Mobile only) -->
       <button id="mobile-search-toggle" class="md:hidden text-white focus:outline-none">
         <i class="fas fa-search"></i>
       </button>
-      
       <!-- Mobile Menu Toggle -->
       <div class="md:hidden">
         <button id="menu-toggle" class="text-white focus:outline-none">
@@ -77,13 +69,12 @@
       </div>
     </div>
   </div>
-  
   <!-- Mobile Search Box (Hidden by default) -->
   <div id="mobile-search-box" class="hidden px-4 py-2 bg-gray-800 md:hidden">
     <input type="text" placeholder="Search movies..." 
            class="w-full px-3 py-2 rounded-md bg-gray-700 text-white focus:outline-none" />
+    <ul id="mobile-suggestions-list" class="absolute bg-gray-900 text-white rounded-md w-full shadow-md hidden"></ul>
   </div>
-  
   <!-- Mobile Navigation Menu -->
   <div id="mobile-menu" class="md:hidden hidden px-4 pt-2 pb-4 bg-gray-800">
     <a href="index.html" class="block py-2 hover:text-red-500 transition flex items-center">
@@ -98,6 +89,9 @@
     <a href="game.html" class="block py-2 hover:text-red-500 transition flex items-center">
       <i class="fas fa-gamepad mr-3"></i> Play Game
     </a>
+    <button onclick="logout()" class="block w-full text-left py-2 hover:text-red-500 transition flex items-center">
+      <i class="fas fa-sign-out-alt mr-3"></i> Logout
+    </button>
   </div>
 </nav>
 
@@ -118,7 +112,6 @@
  
   <!-- Main Content -->
   <main id="movies" class="container mx-auto p-4">
-    <!-- Trending Movies Section -->
     <section>
       <h2 class="text-2xl font-bold text-red-500 mb-4">📈 Trending Now</h2>
       <div class="trending-container">
@@ -128,8 +121,7 @@
 
     <!-- Genre Selection -->
     <section class="mt-6">
-      <!-- <h2 class="text-xl font-semibold text-gray-300 mb-3">🎭 Select Genre</h2> -->
-      <div id="tags" class="flex flex-wrap gap-2"></div> <!-- Genres added dynamically -->
+      <div id="tags" class="flex flex-wrap gap-2"></div> 
     </section>
 
     <!-- Popular Movies Section -->
@@ -151,82 +143,153 @@
 </button>
 </footer>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
+<script type="module">
+document.addEventListener("DOMContentLoaded", function () {
     const menuToggle = document.getElementById("menu-toggle");
     const mobileMenu = document.getElementById("mobile-menu");
     const searchToggle = document.getElementById("mobile-search-toggle");
     const mobileSearchBox = document.getElementById("mobile-search-box");
-    const scrollToTopBtn = document.getElementById("scrollToTop");
     const desktopSearchInput = document.getElementById("search-box");
     const mobileSearchInput = document.querySelector("#mobile-search-box input");
-    
+    const scrollToTopBtn = document.getElementById("scrollToTop");
+
+    const searchSuggestionBox = document.createElement("div");
+    searchSuggestionBox.classList.add("search-suggestions", "absolute", "bg-gray-800", "text-white", "w-full", "rounded-md", "shadow-lg", "z-50", "hidden");
+    searchSuggestionBox.style.maxHeight = "200px"; 
+    searchSuggestionBox.style.overflowY = "auto"; 
+    document.body.appendChild(searchSuggestionBox);
+
     // Mobile menu toggle
     if (menuToggle && mobileMenu) {
-      menuToggle.addEventListener("click", () => {
-        mobileMenu.classList.toggle("hidden");
-        mobileSearchBox.classList.add("hidden");
-      });
+        menuToggle.addEventListener("click", () => {
+            mobileMenu.classList.toggle("hidden");
+            mobileSearchBox.classList.add("hidden");
+        });
     }
 
     // Mobile search toggle
     if (searchToggle && mobileSearchBox) {
-      searchToggle.addEventListener("click", () => {
-        mobileSearchBox.classList.toggle("hidden");
-        mobileMenu.classList.add("hidden");
-        // Focus on mobile search input when icon is clicked
-        if (!mobileSearchBox.classList.contains("hidden")) {
-          mobileSearchInput.focus();
+        searchToggle.addEventListener("click", () => {
+            mobileSearchBox.classList.toggle("hidden");
+            mobileMenu.classList.add("hidden");
+            if (!mobileSearchBox.classList.contains("hidden")) {
+                mobileSearchInput.focus();
+            }
+        });
+    }
+    // Fetch movie suggestions from TMDB API
+    async function fetchMovieSuggestions(query, inputField) {
+        if (query.length < 2) {
+            searchSuggestionBox.classList.add("hidden"); 
+            return;
         }
-      });
+        const API_KEY = "a1f92cfb27aa3b9e66cb42880700f6d9"; 
+        const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${query}`);
+        const data = await response.json();
+        displaySuggestions(data.results, inputField);
     }
 
-    // Handle search functionality for both desktop and mobile
+    // Display suggestions in dropdown
+    function displaySuggestions(movies, inputField) {
+        searchSuggestionBox.innerHTML = ""; 
+        if (!movies || movies.length === 0) {
+            searchSuggestionBox.classList.add("hidden");
+            return;
+        }
+
+        movies.slice(0, 5).forEach(movie => {
+            const suggestionItem = document.createElement("div");
+            suggestionItem.classList.add("p-2", "hover:bg-gray-700", "cursor-pointer");
+            suggestionItem.textContent = movie.title;
+            suggestionItem.addEventListener("click", () => {
+                inputField.value = movie.title; 
+                handleSearch(movie.title);
+                searchSuggestionBox.classList.add("hidden");
+            });
+
+            searchSuggestionBox.appendChild(suggestionItem);
+        });
+
+        searchSuggestionBox.classList.remove("hidden");
+        const { left, top, width } = inputField.getBoundingClientRect();
+        searchSuggestionBox.style.left = `${left}px`;
+        searchSuggestionBox.style.top = `${top + inputField.offsetHeight}px`;
+        searchSuggestionBox.style.width = `${width}px`;
+    }
+
+    // Event listeners for search input
+    [desktopSearchInput, mobileSearchInput].forEach(input => {
+        if (input) {
+            input.addEventListener("input", () => fetchMovieSuggestions(input.value, input));
+            input.addEventListener("focus", () => fetchMovieSuggestions(input.value, input));
+        }
+    });
+
+    // Search function
     function handleSearch(query) {
-      if (query && query.trim().length > 0) {
-        localStorage.setItem("searchQuery", query.trim());
-        window.location.href = "search-results.html";
-      }
-    }
-
-    // Desktop search - Enter key
-    if (desktopSearchInput) {
-      desktopSearchInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          handleSearch(desktopSearchInput.value);
+        if (query.trim().length > 0) {
+            localStorage.setItem("searchQuery", query.trim());
+            window.location.href = "search-results.html";
         }
-      });
     }
 
-    // Mobile search - Enter key
-    if (mobileSearchInput) {
-      mobileSearchInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          handleSearch(mobileSearchInput.value);
+    // Search on Enter key
+    [desktopSearchInput, mobileSearchInput].forEach(input => {
+        if (input) {
+            input.addEventListener("keypress", (e) => {
+                if (e.key === "Enter") {
+                    handleSearch(input.value);
+                }
+            });
         }
-      });
-    }
+    });
 
-    // Search icon click handler (for mobile)
-    if (searchToggle) {
-      searchToggle.addEventListener("click", function() {
-        // When clicking search icon, we already show the search box
-        // No need to handle search here as we'll use the Enter key
-      });
-    }
+    // Hide suggestions when clicking outside
+    document.addEventListener("click", (e) => {
+        if (!desktopSearchInput.contains(e.target) && 
+            !mobileSearchInput.contains(e.target) &&
+            !searchSuggestionBox.contains(e.target)) {
+            searchSuggestionBox.classList.add("hidden");
+        }
+    });
 
-    // Scroll to top button functionality
+    // ✅ FIXED SCROLL TO TOP FUNCTIONALITY
     if (scrollToTopBtn) {
-      window.addEventListener("scroll", () => {
-        scrollToTopBtn.classList.toggle("hidden", window.pageYOffset <= 300);
-      });
+        window.addEventListener("scroll", () => {
+            if (window.pageYOffset > 300) {
+                scrollToTopBtn.classList.remove("hidden"); 
+            } else {
+                scrollToTopBtn.classList.add("hidden"); 
+            }
+        });
 
-      scrollToTopBtn.addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
+        scrollToTopBtn.addEventListener("click", () => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        });
     }
-  });
-</script><script src="script.js"></script>
+});
+import { auth, onAuthStateChanged, signOut } from "./firebase.js";
+    const logoutBtn = document.getElementById("logout-btn");
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            logoutBtn.classList.remove("hidden"); 
+        } else {
+            logoutBtn.classList.add("hidden"); 
+        }
+    });
 
+    // Logout function
+    logoutBtn.addEventListener("click", async () => {
+        await signOut(auth);
+        window.location.href = "index.html"; 
+    });
+</script>
+<script src="./firebase.js" type="module"></script>
+<script type="module">
+  import { checkAuthStatus, setupLogoutButton } from "./auth/auth.js";
+  checkAuthStatus(); 
+  setupLogoutButton(); 
+</script>
+<script src="script.js" type="module"></script>
 </body>
 </html>

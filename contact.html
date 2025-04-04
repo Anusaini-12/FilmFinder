@@ -53,11 +53,10 @@
         <p class="text-gray-400">&copy; 2025 Streamify. All rights reserved.</p>
     </footer>
 
-    <script>
-        // Initialize EmailJS
-        emailjs.init("EfbxTqGZn9kjae1y8"); // Replace with your EmailJS Public Key
-
-        // Form Submission
+    <script type="module">
+        import { checkAuthStatus } from "./auth/auth.js";
+        checkAuthStatus();
+        emailjs.init("EfbxTqGZn9kjae1y8");
         document.getElementById("contact-form").addEventListener("submit", function(event) {
             event.preventDefault();
 
@@ -71,6 +70,5 @@
                 });
         });
     </script>
-
 </body>
 </html>

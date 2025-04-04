@@ -1,3 +1,70 @@
+import { checkAuthStatus } from "./auth/auth.js"; 
+checkAuthStatus(); 
+
+import { 
+    auth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    sendPasswordResetEmail, 
+    onAuthStateChanged, 
+    signOut 
+} from "./firebase.js"; 
+
+// ✅ Signup function
+function signUp() {
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+    let messageBox = document.getElementById("message");
+
+    createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            messageBox.innerText = "Account Created! ✅";
+            messageBox.style.color = "green";
+            setTimeout(() => (window.location.href = "login.html"), 2000); 
+        })
+        .catch((error) => {
+            messageBox.innerText = error.message;
+            messageBox.style.color = "red";
+        });
+}
+
+// ✅ Login function
+function login() {
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+    let messageBox = document.getElementById("message");
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            messageBox.innerText = "Login Successful! ✅";
+            messageBox.style.color = "green";
+            setTimeout(() => (window.location.href = "index.html"), 2000); 
+        })
+        .catch((error) => {
+            messageBox.innerText = error.message;
+            messageBox.style.color = "red";
+        });
+}
+
+// ✅ Logout function
+function logout() {
+    signOut(auth).then(() => {
+        window.location.href = "./auth/login.html";
+    });
+}
+
+// ✅ Check if User is Logged In
+onAuthStateChanged(auth, (user) => {
+    if (!user && window.location.pathname !== "./auth/login.html") {
+        window.location.href = "./auth/login.html"; 
+    }
+});
+
+// ✅ Attach functions to the global window object
+window.signUp = signUp;
+window.login = login;
+window.logout = logout;
+
 const API_KEY = "a1f92cfb27aa3b9e66cb42880700f6d9";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMG_BASE_URL = "https://image.tmdb.org/t/p/original";
@@ -103,7 +170,7 @@ async function getPopularMovies(genreId = null) {
 async function fetchRandomMovieBackground() {
     try {
         const heroSection = document.getElementById("hero");
-        if (!heroSection) return; // ✅ Prevents the error if #hero is missing
+        if (!heroSection) return; 
 
         const response = await fetch(`${BASE_URL}/trending/movie/day?api_key=${API_KEY}`);
         if (!response.ok) throw new Error("Failed to fetch background image.");
@@ -136,7 +203,7 @@ async function searchMovies(query) {
 
 // Display Movies
 function displayMovies(movies, container) {
-    if (!container) return; // Prevent errors if container is missing
+    if (!container) return; 
 
     container.innerHTML = "";
     if (!movies || movies.length === 0) {
@@ -144,19 +211,19 @@ function displayMovies(movies, container) {
         return;
     }
 
-    let favorites = JSON.parse(localStorage.getItem("favorites")) || []; // Load favorites
+    let favorites = JSON.parse(localStorage.getItem("favorites")) || [];
 
     movies.forEach(movie => {
         const moviePoster = movie.poster_path
             ? `${IMG_BASE_URL}${movie.poster_path}`
             : "https://dummyimage.com/300x450/000000/ffffff&text=No+Image"; 
         
-        const isFavorite = favorites.some(fav => fav.id === movie.id); // Check if movie is liked
+        const isFavorite = favorites.some(fav => fav.id === movie.id); 
         const heartIcon = isFavorite ? "❤️" : "♡";
         const heartColor = isFavorite ? "text-red-500" : "text-gray-400";
 
         const movieCard = document.createElement("div");
-        movieCard.classList.add("movie-card", "relative"); // Ensure it's positioned correctly
+        movieCard.classList.add("movie-card", "relative");
 
         movieCard.innerHTML = `
             <!-- ❤️ Like Button (Top Right) -->
@@ -178,6 +245,7 @@ function displayMovies(movies, container) {
         container.appendChild(movieCard);
     });
 }
+window.getMovieDetails = getMovieDetails;
 
 // Toggle Favorite Function (Fixed)
 function toggleFavorite(button, movieId, title, poster) {
@@ -185,13 +253,13 @@ function toggleFavorite(button, movieId, title, poster) {
     let movieIndex = favorites.findIndex(movie => movie.id === movieId);
 
     if (movieIndex === -1) {
-        // ✅ Add to favorites and fill the heart ❤️
+        //Add to favorites and fill the heart 
         favorites.push({ id: movieId, title, poster });
         button.innerHTML = "❤️"; 
         button.classList.add("text-red-500");
         alert("⭐ Movie added to favorites!");
     } else {
-        // ❌ Remove from favorites and empty the heart ♡
+        //Remove from favorites and empty the heart ♡
         favorites.splice(movieIndex, 1);
         button.innerHTML = "♡"; 
         button.classList.remove("text-red-500");
@@ -201,7 +269,7 @@ function toggleFavorite(button, movieId, title, poster) {
     localStorage.setItem("favorites", JSON.stringify(favorites));
 }
 
-// ✅ Make sure toggleFavorite is globally accessible
+//Make sure toggleFavorite is globally accessible
 window.toggleFavorite = toggleFavorite;
 
 // Fetch full movie details and navigate to details page
@@ -219,7 +287,7 @@ async function getMovieDetails(movieId) {
 
 // Set Genres
 function setGenres() {
-    if (!tagsEl) return;  // ✅ Prevent error if `tagsEl` does not exist
+    if (!tagsEl) return;  
 
     tagsEl.innerHTML = "";
     genres.forEach(genre => {
@@ -236,7 +304,6 @@ function setGenres() {
                 selectedGenre = genre.id;
                 movieTitle.innerText = `🔥 ${genre.name} Movies`;
             }
-
             getPopularMovies(selectedGenre);
             highlightSelectedGenre();
         });
@@ -252,19 +319,7 @@ function highlightSelectedGenre() {
         tag.classList.add("bg-gray-800");
     });
 }
-// const scrollToTopBtn = document.getElementById("scrollToTop");
 
-// window.addEventListener("scroll", () => {
-//     if (window.scrollY > 300) {
-//         scrollToTopBtn.classList.remove("hidden");
-//     } else {
-//         scrollToTopBtn.classList.add("hidden");
-//     }
-// });
-
-// scrollToTopBtn.addEventListener("click", () => {
-//     window.scrollTo({ top: 0, behavior: "smooth" });
-// });
 getPopularMovies();
 getTrendingMovies();
 
