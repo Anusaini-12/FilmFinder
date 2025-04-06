@@ -1,5 +1,7 @@
 body {
-    font-family: "Nunito";
+    font-family: "Gabriela", serif;
+    font-weight: 400;
+    font-style: normal;
     background-color: #000; 
     color: #fff;
     margin: 0;
@@ -9,7 +11,6 @@ body {
 .search-suggestions::-webkit-scrollbar {
     display: none;
 }
-
 
 .hero {
     width: 100%;
